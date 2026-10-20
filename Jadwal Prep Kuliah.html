@@ -1,0 +1,593 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Jadwal Prep Kuliah</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow planner column — week header, weekly + all-time tally, day-by-day agenda, key dates, history. */
+:root{
+  --bg:#F5F6FA; --surface:#FFFFFF; --ink:#15172A; --muted:#5C6077; --line:#DCDFEA;
+  --accent:#2E43CF; --accent-ink:#FFFFFF; --today:#EDEFFF;
+  --mark:#FFE14F; --miss:#C2362C; --ok:#1C8456;
+  --c-tka:#2E43CF; --c-ielts:#0B7F80; --c-gym:#B45F00; --c-lomba:#8F37B8; --c-sleep:#5C6077; --c-kampus:#2B7A30;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F111B; --surface:#171A28; --ink:#E7E9F5; --muted:#9A9FBA; --line:#2A2E45;
+  --accent:#8E9CFF; --accent-ink:#0F111B; --today:#1C2042;
+  --mark:rgba(255,225,79,.32); --miss:#FF7D70; --ok:#5DD39C;
+  --c-tka:#8E9CFF; --c-ielts:#4FD1D1; --c-gym:#FFAA4D; --c-lomba:#D69BF2; --c-sleep:#9A9FBA; --c-kampus:#7FD483;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F111B; --surface:#171A28; --ink:#E7E9F5; --muted:#9A9FBA; --line:#2A2E45;
+  --accent:#8E9CFF; --accent-ink:#0F111B; --today:#1C2042;
+  --mark:rgba(255,225,79,.32); --miss:#FF7D70; --ok:#5DD39C;
+  --c-tka:#8E9CFF; --c-ielts:#4FD1D1; --c-gym:#FFAA4D; --c-lomba:#D69BF2; --c-sleep:#9A9FBA; --c-kampus:#7FD483;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+h2{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+header.top{display:flex;flex-direction:column;gap:14px}
+.top-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.sub{margin:6px 0 0;color:var(--muted)}
+.status{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.status.err{color:var(--miss);border-color:var(--miss)}
+.status.ok{color:var(--ok);border-color:var(--ok)}
+
+.weeknav{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.weeknav .range{font-family:var(--f-display);font-weight:600;font-size:18px;margin-right:auto;min-width:0}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:14px}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.phase{display:inline-flex;gap:6px;align-items:center;font-size:13px;padding:3px 10px;border-radius:999px;background:var(--today);color:var(--accent);font-weight:700}
+
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.tbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.nums{display:flex;gap:18px;flex-wrap:wrap}
+.num{display:flex;flex-direction:column}
+.num b{font-family:var(--f-mono);font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.num span{font-size:12px;color:var(--muted)}
+.num.done b{color:var(--ok)} .num.miss b{color:var(--miss)}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .b-done{background:var(--ok)} .bar .b-miss{background:var(--miss)}
+
+.days{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.day{display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.day.is-today{background:var(--today);border-radius:12px;padding-inline:12px;margin-inline:-12px;border-bottom-color:transparent}
+.day-head{display:flex;flex-direction:column;line-height:1.1}
+.dname{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.dnum{font-family:var(--f-display);font-size:30px;font-weight:800}
+.dmon{font-size:12px;color:var(--muted)}
+.today-tag{margin-top:6px;font-size:11px;font-weight:700;color:var(--accent-ink);background:var(--accent);border-radius:4px;padding:1px 6px;align-self:flex-start}
+.day-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.phase-switch{font-size:12px;font-weight:700;color:var(--accent)}
+.tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.task label{display:flex;gap:10px;align-items:flex-start;padding:4px 0;cursor:pointer}
+.task.locked label{cursor:default}
+.task input{appearance:none;-webkit-appearance:none;flex:none;width:20px;height:20px;margin:1px 0 0;border:2px solid var(--muted);border-radius:5px;background:var(--surface);display:grid;place-content:center;cursor:pointer}
+.task input:checked{background:var(--accent);border-color:var(--accent)}
+.task input:checked::after{content:"";width:10px;height:6px;border-left:2.5px solid var(--accent-ink);border-bottom:2.5px solid var(--accent-ink);transform:rotate(-45deg) translate(1px,-1px)}
+.task input:disabled{opacity:.35;cursor:default}
+.tline{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;min-width:0}
+.txt{overflow-wrap:anywhere}
+.task.done .txt{background:linear-gradient(transparent 52%, var(--mark) 52%, var(--mark) 92%, transparent 92%)}
+.task.missed .txt{color:var(--muted)}
+.cat{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.cat-tka{color:var(--c-tka)} .cat-ielts{color:var(--c-ielts)} .cat-gym{color:var(--c-gym)} .cat-lomba{color:var(--c-lomba)} .cat-sleep{color:var(--c-sleep)} .cat-kampus{color:var(--c-kampus)}
+.tag{font-size:11px;font-weight:700;border-radius:4px;padding:0 6px;border:1px solid currentColor}
+.tag.miss{color:var(--miss)} .tag.soon{color:var(--accent)} .tag.now{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)} .tag.ok{color:var(--ok)}
+.day-foot{font-size:12px;color:var(--muted)}
+.empty-note{color:var(--muted);font-size:14px;padding:4px 0}
+
+.section{display:flex;flex-direction:column;gap:12px}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ev{border-bottom:1px solid var(--line)}
+.ev label{display:grid;grid-template-columns:20px 64px minmax(0,1fr);gap:12px;align-items:start;padding:9px 0;cursor:pointer}
+.ev input{appearance:none;-webkit-appearance:none;width:20px;height:20px;margin:1px 0 0;border:2px solid var(--muted);border-radius:5px;background:var(--surface);display:grid;place-content:center;cursor:pointer}
+.ev input:checked{background:var(--accent);border-color:var(--accent)}
+.ev input:checked::after{content:"";width:10px;height:6px;border-left:2.5px solid var(--accent-ink);border-bottom:2.5px solid var(--accent-ink);transform:rotate(-45deg) translate(1px,-1px)}
+.ev .edate{font-family:var(--f-mono);font-size:13px;color:var(--muted);padding-top:1px}
+.ev.done .txt{background:linear-gradient(transparent 52%, var(--mark) 52%, var(--mark) 92%, transparent 92%)}
+.ev.next{background:var(--today);border-radius:8px;padding-inline:8px;margin-inline:-8px;border-bottom-color:transparent}
+.toggle-past{align-self:flex-start}
+
+.hist{display:flex;flex-direction:column;gap:8px}
+.hrow{display:grid;grid-template-columns:118px minmax(0,1fr) 64px;gap:12px;align-items:center;background:none;border:0;padding:4px 0;text-align:left;width:100%}
+.hrow:hover .hlabel{color:var(--accent)}
+.hrow.cur .hlabel{font-weight:700}
+.hlabel{font-size:13px}
+.hval{font-family:var(--f-mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.cbox .cv{font-family:var(--f-mono);font-size:13px}
+.how{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;margin:0}
+.focus{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:14px}
+.focus b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.golink{background:none;border:0;padding:0;font-size:12px;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.prog-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 24px;margin:0;padding:0;list-style:none;font-size:14px}
+.prog-rules b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.phases{display:flex;flex-direction:column;gap:10px}
+details.ph{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+details.ph>summary{cursor:pointer;padding:12px 16px;font-family:var(--f-display);font-weight:600;font-size:16px}
+details.ph>summary .muted{font-family:var(--f-body);font-weight:400;font-size:13px;margin-left:6px}
+.ph-now{font-family:var(--f-body);font-size:11px;font-weight:700;color:var(--accent-ink);background:var(--accent);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.ph-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:20px}
+.sess h3{font-family:var(--f-display);font-size:15px;font-weight:600;margin:0}
+.sess .where{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+.tbl th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.sr,.tbl td.kg{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.tbl td.sr{white-space:nowrap}
+.tbl .area{display:block;font-size:11px;color:var(--c-gym);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.sess .note{font-size:13px;color:var(--muted);margin:8px 0 0}
+@media (max-width:480px){
+  .day{grid-template-columns:52px minmax(0,1fr);gap:10px}
+  .dnum{font-size:24px}
+  .ev label{grid-template-columns:20px 52px minmax(0,1fr);gap:10px}
+  .hrow{grid-template-columns:96px minmax(0,1fr) 56px;gap:8px}
+}
+@media (prefers-reduced-motion:no-preference){ .bar i{transition:width .3s ease} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="top-row">
+      <div>
+        <div class="eyebrow">Toronto · Oxford · TKA · Lomba · Badan</div>
+        <h1>Jadwal Prep Kuliah</h1>
+        <p class="sub">Ceklis kosong lagi tiap Sabtu. Yang sudah lewat tetap tercatat di Riwayat.</p>
+      </div>
+      <span class="status" id="status">Menyambung…</span>
+    </div>
+    <div class="weeknav">
+      <span class="range" id="range"></span>
+      <span class="phase" id="phase"></span>
+      <button class="btn" id="prev" aria-label="Minggu sebelumnya">‹</button>
+      <button class="btn" id="now">Minggu ini</button>
+      <button class="btn" id="next" aria-label="Minggu berikutnya">›</button>
+    </div>
+  </header>
+
+  <div class="tally" id="tally"></div>
+
+  <section class="section">
+    <div class="sec-head"><h2>Ceklis minggu ini</h2><span class="muted" style="font-size:13px">Sabtu → Jumat</span></div>
+    <div class="focus" id="focus" hidden></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <section class="section" id="program">
+    <div class="sec-head"><h2>Program olahraga</h2><span class="muted" style="font-size:13px">Kaki, pinggul, dada, punggung, bahu, lengan, perut, jantung</span></div>
+    <ul class="prog-rules">
+      <li><b>Pemanasan 5–8 menit</b>Jumping jack 1 menit, putar bahu dan pinggul, 5 inchworm. Sebelum gerakan pakai dumbel: 1 set tanpa beban × 10.</li>
+      <li><b>Alat</b>Dua dumbel 10 kg untuk gerakan utama. Untuk gerakan yang 10 kg terlalu berat (lateral raise, curl awal), pakai botol air atau ransel isi buku (1 L air = 1 kg).</li>
+      <li><b>Cara pilih beban</b>Angka beban di tabel cuma tebakan awal. Patokan yang benar: repetisi terakhir tiap set terasa masih sisa 2 repetisi, dengan teknik tetap rapi.</li>
+      <li><b>Cara naik</b>Kalau semua set sudah sampai angka repetisi teratas, sesi berikutnya bikin lebih berat tanpa menambah kilo: turun 3 detik, jeda 2 detik di bawah, ganti ke gerakan satu kaki atau satu tangan, atau pakai variasi lebih berat (push-up biasa → kaki di kursi).</li>
+      <li><b>Istirahat antar set</b>90 detik–2 menit untuk squat, split squat, push-up, dan row. 60 detik untuk gerakan lainnya.</li>
+      <li><b>Teknik dulu</b>Rekam dirimu dari samping, lalu bandingkan dengan video tutorial, atau minta guru PJOK mengecek. Meja untuk inverted row harus kokoh. Nyeri tajam di sendi berarti berhenti.</li>
+      <li><b>Pemulihan</b>Protein di tiap makan (telur, ayam, ikan, tempe, tahu), dan tidur 7–8 jam. Otot tumbuh waktu istirahat.</li>
+    </ul>
+    <div class="phases" id="phases"></div>
+  </section>
+
+  <section class="section">
+    <div class="sec-head"><h2>Tanggal penting</h2><span class="muted mono" id="evcount" style="font-size:13px"></span></div>
+    <ul class="events" id="events"></ul>
+    <button class="btn toggle-past" id="togglePast"></button>
+  </section>
+
+  <section class="section">
+    <div class="sec-head"><h2>Riwayat</h2><span class="muted" style="font-size:13px">sejak 20 Okt 2026 · klik minggu untuk membuka</span></div>
+    <div class="hist" id="hist"></div>
+    <div class="cats" id="cats"></div>
+  </section>
+
+  <p class="how">Hari yang sudah lewat dan belum dicentang dihitung <b>terlewat</b>. Kalau sebenarnya sudah dikerjakan tapi lupa centang, buka minggunya lalu centang. Hari yang belum datang dikunci. Item bertanda opsional, termasuk semua yang "kalau lolos", tidak dihitung terlewat. Kalau kamu lolos, tetap centang supaya tercatat.</p>
+</div>
+
+<script>
+(function(){
+const START='2026-10-20';
+const DN=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+const MN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const CAT={tka:'TKA',ielts:'IELTS',gym:'Olahraga',lomba:'Lomba',sleep:'Tidur',kampus:'Kampus'};
+const PH={A:'Sprint TKA',B:'Lomba + transisi',C:'IELTS intensif'};
+
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2]);};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d);};
+const today=()=>ymd(new Date());
+const weekStart=s=>{const d=parse(s);d.setDate(d.getDate()-((d.getDay()+1)%7));return ymd(d);};
+const diffDays=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const fmt=s=>{const d=parse(s);return d.getDate()+' '+MN[d.getMonth()];};
+const phase=s=>s<='2026-10-29'?'A':(s<='2026-11-30'?'B':'C');
+
+const FOCUS={
+ '2026-10-17':'Sprint TKA: Fisika dan Matematika Lanjut dapat porsi terbesar. Upload EGSA paling lambat Ahad.',
+ '2026-10-24':'TKA 26–29 Okt. Setelah itu langsung submit GENMATCH (deadline 31 Okt).',
+ '2026-10-31':'Daftar NESTA, cek UISO dan GENMATCH. Kalau lolos GENMATCH, PPT final harus siap sebelum 8 Nov. Tryout IELTS pertama hari Jumat.',
+ '2026-11-07':'Final GENMATCH (kalau lolos), lalu tulis NESTA dari nol sampai draf lengkap.',
+ '2026-11-14':'Submit NESTA 15 Nov. Lanjut PPT UISO dan EGSA kalau lolos.',
+ '2026-11-21':'Final EGSA, lalu persiapan final UISO (Depok) dan NESTA. Tanggal 29 bentrok, pastikan jamnya.',
+ '2026-11-28':'Masuk fase IELTS: pelajari band descriptor Writing dan Speaking, mulai daftar kosakata pribadi.',
+ '2026-12-05':'Writing Task 2: struktur 4 paragraf (pembuka, 2 isi, penutup). Reading: skimming dan scanning. Mulai aplikasi UofT.',
+ '2026-12-12':'Listening section 3–4 (akademik). Writing Task 1: grafik garis dan batang. Siapkan rapor dan terjemahannya.',
+ '2026-12-19':'Speaking Part 2–3: bicara 2 menit tanpa berhenti. Rapikan isian aplikasi UofT.',
+ '2026-12-26':'Tryout lengkap ke-2 dan evaluasi: bandingkan dengan skor 6 Nov, lalu tentukan target tes resmi.'
+};
+const PLAN_B={
+ '2026-10-30':[['lomba1','Finalisasi dan submit GENMATCH (deadline besok)','lomba'],['ielts1','Listening 20 menit santai','ielts',1],['run','Lari santai 25 menit','gym']],
+ '2026-10-31':[['lomba1','Daftar NESTA batch 1 + cek pengumuman UISO','lomba'],['lomba2','Kalau lolos UISO: daftar ulang (Rp125.000)','lomba',1],['ielts1','IELTS 30 menit: Reading 1 passage','ielts'],['gym','Full Body A di rumah','gym']],
+ '2026-11-01':[['lomba1','NESTA: pilih topik (harus beda dari GENMATCH) + kerangka','lomba'],['ielts1','IELTS 30 menit: Listening section 1–2','ielts']],
+ '2026-11-02':[['lomba1','NESTA: kumpulkan data dan referensi','lomba'],['ielts1','IELTS 30 menit: kosakata + ide Writing Task 2','ielts'],['gym','Full Body B di rumah','gym']],
+ '2026-11-03':[['lomba1','Cek pengumuman GENMATCH; kalau lolos, mulai PPT final','lomba'],['ielts1','IELTS 30 menit: Speaking Part 1','ielts']],
+ '2026-11-04':[['lomba1','Ikut TM GENMATCH + lanjut PPT (kalau lolos)','lomba',1],['lomba2','NESTA: lanjut riset','lomba'],['gym','Bodyweight full body','gym']],
+ '2026-11-05':[['lomba1','PPT GENMATCH selesai + latihan presentasi 2x (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: Listening section 3','ielts']],
+ '2026-11-06':[['ielts-mock','Tryout IELTS lengkap pertama (cari skor awal)','ielts'],['lomba1','Latihan presentasi GENMATCH + simulasi tanya juri (kalau lolos)','lomba',1],['run','Lari santai 25 menit','gym']],
+ '2026-11-07':[['lomba1','Ikut TM2 UISO via Zoom (kalau lolos)','lomba',1],['lomba2','Gladi presentasi GENMATCH (kalau lolos)','lomba',1],['gym','Full Body A di rumah','gym']],
+ '2026-11-08':[['lomba1','Final GENMATCH (kalau lolos)','lomba',1],['ielts1','Bahas tryout 6 Nov: tulis 3 kelemahan terbesar','ielts']],
+ '2026-11-09':[['lomba1','NESTA: tulis latar belakang + masalah','lomba'],['ielts1','IELTS 30 menit: latih kelemahan #1','ielts'],['gym','Full Body B di rumah','gym']],
+ '2026-11-10':[['lomba1','NESTA: tulis gagasan utama','lomba'],['ielts1','IELTS 30 menit: Speaking Part 2','ielts']],
+ '2026-11-11':[['lomba1','NESTA: implementasi + kesimpulan (draf lengkap)','lomba'],['ielts1','IELTS 30 menit: latih kelemahan #2','ielts'],['gym','Bodyweight full body','gym']],
+ '2026-11-12':[['lomba1','NESTA: revisi sendiri, kirim ke guru pembina','lomba'],['ielts1','IELTS 30 menit: Reading 1 passage','ielts']],
+ '2026-11-13':[['lomba1','NESTA: revisi dari pembina + cek pengumuman EGSA','lomba'],['ielts-mock','Writing Task 1 + Task 2 pakai timer (60 menit)','ielts'],['run','Lari santai 25 menit','gym']],
+ '2026-11-14':[['lomba1','NESTA: rapikan format .docx (3–5 halaman)','lomba'],['lomba2','Kalau lolos EGSA: mulai PPT final','lomba',1],['gym','Full Body A di rumah','gym']],
+ '2026-11-15':[['lomba1','Submit NESTA','lomba'],['ielts1','IELTS 30 menit: Listening section 4','ielts']],
+ '2026-11-16':[['lomba1','PPT UISO: kerangka (kalau lolos)','lomba',1],['lomba2','PPT EGSA: draf (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: latih kelemahan #3','ielts'],['gym','Full Body B di rumah','gym']],
+ '2026-11-17':[['lomba1','Lanjut PPT UISO + EGSA (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: Speaking Part 2–3','ielts']],
+ '2026-11-18':[['lomba1','PPT EGSA selesai + latihan 2x (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: Reading','ielts'],['gym','Bodyweight full body','gym']],
+ '2026-11-19':[['lomba1','Cek pengumuman finalis NESTA','lomba'],['lomba2','PPT UISO hampir jadi (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: Listening','ielts']],
+ '2026-11-20':[['lomba1','Upload PPT UISO sebelum 23.59 (kalau lolos)','lomba',1],['lomba2','Gladi EGSA + simulasi tanya juri (kalau lolos)','lomba',1],['run','Lari santai 25 menit','gym']],
+ '2026-11-21':[['lomba1','Final EGSA (kalau lolos)','lomba',1],['ielts1','IELTS 20 menit santai','ielts',1],['gym','Full Body A di rumah','gym',1]],
+ '2026-11-22':[['lomba1','Ikut TM NESTA + mulai PPT NESTA (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: Writing Task 2','ielts']],
+ '2026-11-23':[['lomba1','Latihan presentasi UISO: 15 menit + 15 menit tanya jawab (kalau lolos)','lomba',1],['lomba2','PPT NESTA (kalau lolos)','lomba',1],['gym','Full Body B di rumah','gym']],
+ '2026-11-24':[['lomba1','Latihan presentasi UISO di depan pembina (kalau lolos)','lomba',1],['lomba2','PPT NESTA selesai (kalau lolos)','lomba',1],['ielts1','IELTS 30 menit: Listening','ielts']],
+ '2026-11-25':[['lomba1','Simulasi tanya juri UISO + siapkan barang dan tiket ke Depok (kalau lolos)','lomba',1],['gym','Bodyweight full body','gym']],
+ '2026-11-26':[['lomba1','Gladi terakhir UISO + latihan NESTA (kalau lolos)','lomba',1],['ielts1','IELTS 20 menit santai','ielts',1]],
+ '2026-11-27':[['lomba1','Final UISO di FMIPA UI (kalau lolos)','lomba',1]],
+ '2026-11-28':[['lomba1','Gladi final NESTA (kalau lolos)','lomba',1],['gym','Jalan santai / peregangan 20 menit','gym',1]],
+ '2026-11-29':[['lomba1','Awarding UISO + final NESTA (kalau lolos)','lomba',1]],
+ '2026-11-30':[['lomba1','Evaluasi November: apa yang berhasil, apa yang molor','lomba'],['ielts1','Siapkan bahan IELTS Desember (buku, situs tryout)','ielts'],['gym','Full Body B di rumah','gym']]
+};
+function tasksFor(s){
+  const dow=parse(s).getDay(), p=phase(s), fri=dow===5, t=[];
+  if(p==='A'){
+    const A={
+      '2026-10-20':[['tka1','Blok 1: Matematika Lanjut, latihan soal'],['tka2','Blok 2: Fisika, latihan soal']],
+      '2026-10-21':[['tka1','Blok 1: Fisika, latihan soal'],['tka2','Blok 2: Matematika wajib (sambil ulang dasar Mat Lanjut)']],
+      '2026-10-22':[['tka1','Blok 1: Matematika Lanjut, topik paling lemah'],['tka2','Blok 2: Fisika, bahas soal yang salah']],
+      '2026-10-23':[['tka-to','Tryout Fisika + Mat Lanjut, 75 menit per mapel, lalu bahas']],
+      '2026-10-24':[['tka1','Blok 1: Matematika wajib'],['tka2','Blok 2: Bahasa Inggris (reading)']],
+      '2026-10-25':[['tka1','Blok 1: ulang semua kesalahan Fisika + Mat Lanjut'],['tka2','Blok 2: Bahasa Indonesia ringan (besok ujian)']],
+      '2026-10-26':[['tka-rev','Malam: review ringan Bahasa Inggris (besok)']],
+      '2026-10-27':[['tka-rev','Malam: review rumus dan tipe soal Matematika (besok)']],
+      '2026-10-28':[['tka-rev','Malam: review rumus Fisika + Mat Lanjut (besok)']],
+      '2026-10-29':[]
+    }[s]||[];
+    A.forEach(a=>t.push([a[0],a[1],'tka']));
+    if(s<='2026-10-25'&&!fri) t.push(['lis','Listening 15 menit (selingan)','ielts',true]);
+    if(s==='2026-10-21'||s==='2026-10-24') t.push(['gym','Sesi Ringan bodyweight, ±30 menit','gym']);
+    if(s==='2026-10-23') t.push(['walk','Jalan santai / peregangan 20 menit','gym']);
+  }else if(p==='B'&&PLAN_B[s]){
+    PLAN_B[s].forEach(a=>t.push(a));
+  }else if(p==='B'){
+    if(fri){ t.push(['ielts-mock','Tryout IELTS / latihan satu skill penuh','ielts']); t.push(['lomba-f','Kerjakan lomba (blok panjang)','lomba']); t.push(['run','Lari santai 25 menit','gym']); }
+    else{
+      t.push(['lomba1','Blok 1: lomba (esai / PPT / latihan presentasi)','lomba']);
+      t.push(['ielts1','Blok 2: IELTS 30–45 menit','ielts']);
+      if(dow===6||dow===1||dow===3) t.push(['gym',{6:'Full Body A di rumah',1:'Full Body B di rumah',3:'Bodyweight full body'}[dow],'gym']);
+    }
+  }else{
+    t.push(['vocab','05.30 kosakata / listening ringan 20 menit','ielts']);
+    const sk={6:'Reading: 2 passage pakai timer + bahas',0:'Writing Task 2: satu esai',1:'Listening + baca transkrip',2:'Speaking: rekam Part 2, dengar ulang',3:'Writing Task 1',4:'Ulang materi yang paling banyak salah',5:'Tryout IELTS lengkap + catat kesalahan'}[dow];
+    t.push(['skill',sk,'ielts']);
+    const gy={6:'Upper body di rumah',1:'Lower body di rumah',3:'Bodyweight full body',5:'Lari interval + core',0:'Lari santai 20 menit'}[dow];
+    if(gy) t.push(['gym',gy,'gym',dow===0]);
+    if(dow===0&&s>='2026-12-06'&&s<='2026-12-27') t.push(['kampus','Aplikasi UofT 30 menit (isian, dokumen, esai kalau ada)','kampus']);
+  }
+  t.push(['sleep','Tidur paling lambat 22.00','sleep']);
+  return t.map(a=>({id:a[0],label:a[1],cat:a[2],optional:!!a[3]}));
+}
+
+const EVENTS=[
+ ['e01','2026-10-24','Tanya panitia jam final NESTA dan awarding UISO (29 Nov bentrok)','lomba'],
+ ['e02','2026-10-25','Upload esai EGSA (deadline 28 Okt, jangan tunggu)','lomba'],
+ ['e03','2026-10-26','TKA gelombang 1 (26–29 Okt)','tka'],
+ ['e04','2026-10-30','Submit GENMATCH (deadline 31 Okt)','lomba'],
+ ['e05','2026-10-31','Daftar NESTA batch 1 (Rp50.000)','lomba'],
+ ['e06','2026-10-31','Cek pengumuman UISO; kalau lolos, daftar ulang (31 Okt–3 Nov)','lomba'],
+ ['e08','2026-11-03','Pengumuman finalis GENMATCH','lomba'],
+ ['e09','2026-11-04','Technical meeting GENMATCH (online)','lomba'],
+ ['e10','2026-11-06','Tryout IELTS pertama, cari tahu skor awal','ielts'],
+ ['e11','2026-11-07','TM2 UISO (Zoom)','lomba'],
+ ['e12','2026-11-08','Final GENMATCH (online)','lomba'],
+ ['e13','2026-11-10','Cek syarat dan deadline UofT untuk ijazah SMA Indonesia','kampus'],
+ ['e14','2026-11-13','Pengumuman finalis EGSA','lomba'],
+ ['e15','2026-11-14','Esai NESTA selesai; putuskan datang ke awarding GENMATCH (ITS) atau tidak','lomba'],
+ ['e16','2026-11-15','Submit NESTA (deadline)','lomba'],
+ ['e17','2026-11-19','Pengumuman finalis NESTA','lomba'],
+ ['e18','2026-11-20','Upload PPT UISO (paling lambat 23.59)','lomba'],
+ ['e19','2026-11-21','Final EGSA (MS Teams)','lomba'],
+ ['e20','2026-11-22','TM NESTA','lomba'],
+ ['e21','2026-11-27','Final UISO di FMIPA UI, Depok','lomba'],
+ ['e22','2026-11-29','Awarding UISO + final NESTA (online)','lomba'],
+ ['e23','2026-12-01','Mulai fase IELTS intensif','ielts'],
+ ['e26','2026-12-04','Baca band descriptor resmi Writing dan Speaking IELTS','ielts'],
+ ['e27','2026-12-05','Mulai isi aplikasi UofT lewat OUAC','kampus'],
+ ['e28','2026-12-12','Minta rapor dan siapkan terjemahan resminya untuk aplikasi','kampus'],
+ ['e29','2026-12-25','Tryout IELTS lengkap ke-2, bandingkan dengan 6 Nov','ielts'],
+ ['e30','2026-12-31','Target pribadi: aplikasi UofT terkirim (cek deadline resminya)','kampus'],
+ ['e24','2027-01-31','Putuskan: gap year untuk Oxford 2028 atau tidak','kampus'],
+ ['e25','2027-02-15','Daftar tes IELTS resmi (target Mar–Apr 2027)','ielts'],
+].map(a=>({id:a[0],date:a[1],label:a[2],cat:a[3]}));
+
+const S={weeks:{},events:{done:{}},view:weekStart(today()),mode:'loading',readOnly:false,showPast:false,db:null};
+const inflight=new Set(), dirty=new Set();
+const $=id=>document.getElementById(id);
+const LS='jadwal-prep-v1';
+
+function setStatus(text,cls){const el=$('status');el.textContent=text;el.className='status'+(cls?' '+cls:'');}
+function checksOf(ws){return (S.weeks[ws]&&S.weeks[ws].checks)||{};}
+
+function dayStats(s){
+  const td=today(), ch=checksOf(weekStart(s)), r={done:0,miss:0,open:0,cats:{}};
+  if(s<START) return r;
+  for(const t of tasksFor(s)){
+    const c=r.cats[t.cat]||(r.cats[t.cat]={done:0,miss:0});
+    if(ch[s+'|'+t.id]){r.done++;c.done++;}
+    else if(t.optional){}
+    else if(s<td){r.miss++;c.miss++;}
+    else if(s===td){r.open++;}
+  }
+  return r;
+}
+function rangeStats(from,to){
+  const r={done:0,miss:0,open:0,cats:{}};
+  for(let s=from;s<=to;s=addDays(s,1)){
+    const d=dayStats(s); r.done+=d.done; r.miss+=d.miss; r.open+=d.open;
+    for(const k in d.cats){const c=r.cats[k]||(r.cats[k]={done:0,miss:0});c.done+=d.cats[k].done;c.miss+=d.cats[k].miss;}
+  }
+  return r;
+}
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+
+function render(){
+  const focusId=document.activeElement&&document.activeElement.id;
+  const td=today(), ws=S.view, we=addDays(ws,6), curWs=weekStart(td);
+  $('range').textContent=fmt(ws)+' – '+fmt(we)+' '+parse(we).getFullYear();
+  const phs=[...new Set([0,1,2,3,4,5,6].map(i=>phase(addDays(ws,i))))];
+  $('phase').textContent='Fase: '+phs.map(p=>PH[p]).join(' → ');
+  $('prev').disabled=ws<=weekStart(START);
+  $('now').disabled=ws===curWs;
+  const fo=FOCUS[ws]; $('focus').hidden=!fo; $('focus').innerHTML=fo?'<b>Fokus minggu ini</b>'+fo:'';
+
+  // tally
+  const w=rangeStats(ws<START?START:ws, we<td?we:td);
+  const all=rangeStats(START, td);
+  let weekRemain=0;
+  for(let i=0;i<7;i++){const s=addDays(ws,i); if(s>td&&s>=START) weekRemain+=tasksFor(s).filter(t=>!t.optional).length;}
+  const wDue=w.done+w.miss, aDue=all.done+all.miss;
+  $('tally').innerHTML=
+    box(ws===curWs?'Minggu ini':'Minggu '+fmt(ws), [[w.done,'selesai','done'],[w.miss,'terlewat','miss'],[w.open+weekRemain,'belum','']], w.done, w.miss)+
+    box('Total sejak 20 Okt', [[all.done,'selesai','done'],[all.miss,'terlewat','miss'],[pct(all.done,aDue)+'%','tingkat selesai','']], all.done, all.miss);
+
+  // days
+  let html='', prevPh=phase(addDays(ws,-1));
+  for(let i=0;i<7;i++){
+    const s=addDays(ws,i), d=parse(s), ph=phase(s), isT=s===td, fut=s>td, pre=s<START;
+    const tasks=tasksFor(s), ch=checksOf(ws), st=dayStats(s);
+    html+='<section class="day'+(isT?' is-today':'')+'"><div class="day-head"><span class="dname">'+DN[d.getDay()]+'</span><span class="dnum">'+d.getDate()+'</span><span class="dmon">'+MN[d.getMonth()]+'</span>'+(isT?'<span class="today-tag">Hari ini</span>':'')+'</div><div class="day-body">';
+    if(ph!==prevPh) html+='<div class="phase-switch">Mulai fase: '+PH[ph]+'</div>';
+    prevPh=ph;
+    if(pre){ html+='<div class="empty-note">Belum mulai. Pencatatan dimulai 20 Okt.</div></div></section>'; continue; }
+    html+='<ul class="tasks">';
+    for(const t of tasks){
+      const k=s+'|'+t.id, done=!!ch[k], missed=!done&&!t.optional&&s<td, lock=fut||S.readOnly;
+      html+='<li class="task'+(done?' done':'')+(missed?' missed':'')+(lock?' locked':'')+'"><label><input type="checkbox" id="c-'+k+'" data-k="'+k+'"'+(done?' checked':'')+(lock?' disabled':'')+'><span class="tline"><span class="cat cat-'+t.cat+'">'+CAT[t.cat]+'</span><span class="txt">'+t.label+'</span>'+(t.cat==='gym'?'<button type="button" class="golink" data-goto="'+phase(s)+'">lihat gerakan</button>':'')+(t.optional?'<span class="muted" style="font-size:12px">opsional</span>':'')+(missed?'<span class="tag miss">terlewat</span>':'')+'</span></label></li>';
+    }
+    html+='</ul>';
+    const tot=tasks.filter(t=>!t.optional).length;
+    html+='<div class="day-foot mono">'+st.done+'/'+tot+(fut?' · belum waktunya':'')+'</div></div></section>';
+  }
+  $('days').innerHTML=html;
+
+  // events
+  const done=S.events.done||{};
+  const nextEv=EVENTS.find(e=>e.date>=td&&!done[e.id]);
+  const evs=EVENTS.filter(e=>S.showPast||e.date>=td||!done[e.id]);
+  const hidden=EVENTS.length-evs.length;
+  $('events').innerHTML=evs.map(e=>{
+    const isD=!!done[e.id], dd=diffDays(td,e.date);
+    let tag='';
+    if(isD) tag='<span class="tag ok">beres</span>';
+    else if(dd<0) tag='<span class="tag miss">terlewat</span>';
+    else if(dd===0) tag='<span class="tag now">hari ini</span>';
+    else if(dd<=7) tag='<span class="tag soon">'+dd+' hari lagi</span>';
+    return '<li class="ev'+(isD?' done':'')+(nextEv&&nextEv.id===e.id?' next':'')+'"><label><input type="checkbox" id="ev-'+e.id+'" data-ev="'+e.id+'"'+(isD?' checked':'')+(S.readOnly?' disabled':'')+'><span class="edate">'+fmt(e.date)+'</span><span class="tline"><span class="cat cat-'+e.cat+'">'+CAT[e.cat]+'</span><span class="txt">'+e.label+'</span>'+tag+'</span></label></li>';
+  }).join('');
+  const evDone=EVENTS.filter(e=>done[e.id]).length, evMiss=EVENTS.filter(e=>!done[e.id]&&e.date<td).length;
+  $('evcount').textContent=evDone+'/'+EVENTS.length+' beres'+(evMiss?' · '+evMiss+' terlewat':'');
+  const tp=$('togglePast');
+  tp.hidden=!S.showPast&&hidden===0;
+  tp.textContent=S.showPast?'Sembunyikan yang sudah beres':'Tampilkan '+hidden+' yang sudah beres';
+
+  // history
+  let h='';
+  for(let x=curWs;x>=weekStart(START);x=addDays(x,-7)){
+    const e=addDays(x,6), r=rangeStats(x<START?START:x, e<td?e:td), due=r.done+r.miss;
+    h+='<button class="hrow'+(x===ws?' cur':'')+'" data-week="'+x+'"><span class="hlabel">'+fmt(x)+' – '+fmt(e)+(x===curWs?' <span class="muted">(jalan)</span>':'')+'</span><span class="bar"><i class="b-done" style="width:'+pct(r.done,due)+'%"></i><i class="b-miss" style="width:'+pct(r.miss,due)+'%"></i></span><span class="hval">'+r.done+'/'+due+'</span></button>';
+  }
+  $('hist').innerHTML=h;
+  $('cats').innerHTML=['tka','ielts','gym','lomba','sleep','kampus'].map(k=>{
+    const c=all.cats[k]||{done:0,miss:0}, due=c.done+c.miss;
+    return '<div class="cbox"><span class="cat cat-'+k+'">'+CAT[k]+'</span><span class="bar"><i class="b-done" style="width:'+pct(c.done,due)+'%"></i><i class="b-miss" style="width:'+pct(c.miss,due)+'%"></i></span><span class="cv">'+c.done+' selesai · '+c.miss+' terlewat</span></div>';
+  }).join('');
+
+  if(focusId){const f=document.getElementById(focusId); if(f) f.focus();}
+}
+function box(title,nums,d,m){
+  const due=d+m;
+  return '<div class="tbox"><span class="eyebrow">'+title+'</span><div class="nums">'+nums.map(n=>'<div class="num '+n[2]+'"><b>'+n[0]+'</b><span>'+n[1]+'</span></div>').join('')+'</div><span class="bar" aria-hidden="true"><i class="b-done" style="width:'+pct(d,due)+'%"></i><i class="b-miss" style="width:'+pct(m,due)+'%"></i></span></div>';
+}
+
+// saving
+function docData(path){
+  if(path==='meta/events') return {done:S.events.done||{}};
+  const ws=path.split('/')[1];
+  return {start:ws,checks:checksOf(ws)};
+}
+async function save(path){
+  if(S.mode==='local'){ try{localStorage.setItem(LS,JSON.stringify({weeks:S.weeks,events:S.events}));}catch(e){} return; }
+  if(S.mode!=='db') return;
+  if(inflight.has(path)){dirty.add(path);return;}
+  inflight.add(path); setStatus('Menyimpan…');
+  try{
+    do{ dirty.delete(path); await S.db.doc(path).set(docData(path)); }while(dirty.has(path));
+    setStatus('Tersimpan di akunmu','ok');
+  }catch(e){
+    if(e&&e.code==='invalid_argument'){S.readOnly=true;setStatus('Hanya bisa dilihat');render();}
+    else if(e&&e.code==='quota_exceeded') setStatus('Penyimpanan penuh','err');
+    else setStatus('Gagal menyimpan, coba centang lagi','err');
+  }finally{ inflight.delete(path); }
+}
+
+document.addEventListener('change',ev=>{
+  const el=ev.target;
+  if(el.dataset.k){
+    const k=el.dataset.k, s=k.split('|')[0], ws=weekStart(s);
+    const checks=Object.assign({},checksOf(ws));
+    if(el.checked) checks[k]=true; else delete checks[k];
+    S.weeks=Object.assign({},S.weeks,{[ws]:{start:ws,checks}});
+    render(); save('weeks/'+ws);
+  }else if(el.dataset.ev){
+    const d=Object.assign({},S.events.done||{});
+    if(el.checked) d[el.dataset.ev]=true; else delete d[el.dataset.ev];
+    S.events={done:d}; render(); save('meta/events');
+  }
+});
+document.addEventListener('click',ev=>{
+  const hb=ev.target.closest('[data-week]');
+  if(hb){S.view=hb.dataset.week;render();window.scrollTo({top:0,behavior:'smooth'});return;}
+  const g=ev.target.closest('[data-goto]');
+  if(g){ev.preventDefault();const d=document.querySelector('details.ph[data-ph="'+g.dataset.goto+'"]');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'});}}
+});
+$('prev').onclick=()=>{S.view=addDays(S.view,-7);render();};
+$('next').onclick=()=>{S.view=addDays(S.view,7);render();};
+$('now').onclick=()=>{S.view=weekStart(today());render();};
+$('togglePast').onclick=()=>{S.showPast=!S.showPast;render();};
+
+let lastDay=today();
+setInterval(()=>{const t=today(); if(t!==lastDay){ if(S.view===weekStart(lastDay)) S.view=weekStart(t); lastDay=t; render(); }},60000);
+
+function goLocal(){
+  S.mode='local';
+  try{const raw=localStorage.getItem(LS); if(raw){const o=JSON.parse(raw); S.weeks=o.weeks||{}; S.events=o.events||{done:{}};}}catch(e){}
+  setStatus('Mode lokal: tersimpan di browser ini saja');
+  render();
+}
+
+const BW=['Pull-up di palang taman / sekolah','3 × maks, sisakan 1','—','Belum bisa: 3 × 5 negatif (lompat ke atas, turun pelan 3–5 detik). Tidak ada palang: inverted row di bawah meja 3 × 10','Punggung, lengan'];
+const BODY=[BW,
+  ['Push-up','3 × maks, sisakan 2','—','Sudah lebih dari 20: kaki ditaruh di kursi','Dada, lengan'],
+  ['Dips di kursi/bangku','3 × 8–12','—','Bahu sakit: ganti diamond push-up','Lengan belakang'],
+  ['Bulgarian split squat','3 × 10 / kaki','—','Kaki belakang di kursi','Kaki, pinggul'],
+  ['Pike push-up','3 × 8','—','Pinggul diangkat tinggi, kepala ke arah lantai','Bahu'],
+  ['Side plank','2 × 30 detik / sisi','—','','Perut samping']];
+const PROG=[
+ {ph:'A',title:'Fase Sprint TKA',when:'21 dan 24 Okt',sessions:[
+  {name:'Sesi Ringan',where:'Di rumah, tanpa alat · ±30 menit',ex:[
+   ['Squat bodyweight','3 × 15','—','Turun sampai paha sejajar lantai','Kaki'],
+   ['Push-up','3 × 8–12','—','Belum kuat: push-up bertumpu lutut','Dada, lengan'],
+   ['Reverse lunge','3 × 10 / kaki','—','Langkah ke belakang, lutut depan di atas tumit','Kaki, pinggul'],
+   ['Glute bridge','3 × 15','—','Tahan 1 detik di atas','Pinggul'],
+   ['Superman','3 × 12','—','Angkat tangan dan kaki bersamaan','Punggung bawah'],
+   ['Plank','3 × 30 detik','—','Badan lurus, perut dikencangkan','Perut']],
+   note:'Istirahat 60 detik antar set. Sisakan 3 repetisi di tiap set. Tujuannya badan segar menjelang TKA, bukan pegal.'}]},
+ {ph:'B',title:'Fase Lomba + transisi',when:'30 Okt – 30 Nov',sessions:[
+  {name:'Sabtu · Full Body A',where:'Di rumah · ±45 menit',ex:[
+   ['Goblet squat','3 × 10–15','dumbel 10 kg','Dumbel dipeluk tegak di depan dada. Sudah mudah 15 repetisi: pegang 2 × 10 kg di samping badan','Kaki'],
+   ['Push-up','3 × 8–15','—','Sudah lebih dari 15: kaki ditaruh di kursi','Dada, lengan'],
+   ['Inverted row di bawah meja','3 × 8–12','—','Meja harus kokoh. Berbaring di bawah meja, pegang tepinya, tarik dada ke meja. Lutut ditekuk = lebih ringan','Punggung'],
+   ['Romanian deadlift','3 × 10–12','2 × 10 kg','Punggung lurus, dorong pinggul ke belakang, dumbel turun sampai bawah lutut','Paha belakang, pinggul'],
+   ['Pike push-up','3 × 8','—','Pinggul diangkat tinggi, kepala ke arah lantai','Bahu'],
+   ['Plank','3 × 30–45 detik','—','','Perut']]},
+  {name:'Senin · Full Body B',where:'Di rumah · ±45 menit',ex:[
+   ['Bulgarian split squat','3 × 8–12 / kaki','tanpa beban dulu, lalu dumbel 10 kg','Kaki belakang di kursi, dumbel dipeluk di dada','Kaki'],
+   ['One-arm dumbbell row','3 × 10–12 / lengan','dumbel 10 kg','Satu tangan dan lutut bertumpu di kursi, tarik dumbel ke pinggang','Punggung'],
+   ['Dumbbell floor press','3 × 10–15','2 × 10 kg','Berbaring di lantai, lutut ditekuk, dorong dumbel ke atas. Siku turun sampai menyentuh lantai','Dada, lengan belakang'],
+   ['Single-leg glute bridge','3 × 12 / kaki','dumbel 10 kg di pinggul (opsional)','Tahan 1 detik di atas','Pinggul'],
+   ['Lateral raise pakai botol air','2 × 15','2 botol 1,5 L (±1,5 kg)','Pelan, jangan diayun','Bahu samping'],
+   ['Lying leg raise','3 × 12','—','Punggung bawah tetap menempel lantai','Perut']]},
+  {name:'Rabu · Bodyweight full body',where:'Rumah atau taman · ±40 menit',ex:BODY},
+  {name:'Jumat · Lari santai',where:'±30 menit',ex:[
+   ['Lari santai','25 menit','—','Kecepatan masih bisa ngobrol. Belum kuat: lari 3 menit + jalan 1 menit, diulang','Jantung, kaki'],
+   ['Peregangan','5 menit','—','Paha depan, paha belakang, betis, pinggul','Kelenturan']]}]},
+ {ph:'C',title:'Fase IELTS intensif',when:'mulai 1 Des',sessions:[
+  {name:'Sabtu · Upper body',where:'Di rumah · ±50 menit',ex:[
+   ['Decline push-up','4 × 8–12','ransel di punggung kalau sudah mudah','Kaki di kursi, badan lurus','Dada atas, bahu'],
+   ['Inverted row di bawah meja','4 × 8–12','—','Lebih berat: kaki diluruskan atau diganjal kursi','Punggung'],
+   ['One-arm overhead press','3 × 6–10 / lengan','dumbel 10 kg','Berdiri, perut dan bokong dikencangkan. Belum kuat: ganti pike push-up kaki di kursi 3 × 6–10','Bahu'],
+   ['One-arm dumbbell row, turun 3 detik','4 × 12–15 / lengan','dumbel 10 kg','Turun pelan supaya 10 kg tetap terasa berat','Punggung, lengan depan'],
+   ['Hammer curl','2 × 8–12 / lengan','2 × 10 kg, bergantian','Siku diam di samping badan. Terlalu berat: pakai ransel 4–6 kg','Lengan depan'],
+   ['Dumbbell floor press, turun 3 detik','3 × 10–15','2 × 10 kg','','Dada, lengan belakang']]},
+  {name:'Senin · Lower body',where:'Di rumah · ±50 menit',ex:[
+   ['Dumbbell squat, turun 3 detik','4 × 10–15','2 × 10 kg','Dumbel di samping badan atau ditaruh di bahu','Kaki, pinggul'],
+   ['Bulgarian split squat','3 × 10–12 / kaki','2 × 10 kg di samping badan','Mulai dengan 1 dumbel kalau 2 terlalu berat','Kaki, pinggul'],
+   ['Single-leg Romanian deadlift','3 × 10–12 / kaki','dumbel 10 kg, naik ke 2 × 10 kg','Badan condong, punggung lurus','Paha belakang, pinggul'],
+   ['Hamstring slide pakai handuk','3 × 8–10','—','Lantai licin. Berbaring, tumit di atas handuk, angkat pinggul, tarik tumit ke arah bokong','Paha belakang'],
+   ['Calf raise satu kaki di anak tangga','3 × 15 / kaki','dumbel 10 kg (opsional)','Satu tangan pegangan ke dinding','Betis'],
+   ['Dead bug','3 × 10 / sisi','—','Punggung bawah tetap menempel lantai','Perut']]},
+  {name:'Rabu · Bodyweight full body',where:'Rumah atau taman · ±40 menit',ex:BODY,note:'Sama seperti fase sebelumnya. Naikkan dengan menambah repetisi atau memakai variasi yang lebih berat.'},
+  {name:'Jumat · Lari + core',where:'±40 menit',ex:[
+   ['Lari interval','6 × (1 menit cepat + 2 menit jogging)','—','Minggu berikutnya ganti 30 menit lari santai, begitu bergantian','Jantung, kaki'],
+   ['Plank','3 × 45 detik','—','','Perut'],
+   ['Russian twist','3 × 20','—','Mulai tanpa beban atau botol air. Sudah kuat: pegang dumbel 10 kg','Perut samping'],
+   ['Hollow hold','3 × 20 detik','—','Punggung bawah menempel lantai','Perut']]},
+  {name:'Ahad · Opsional',where:'±20 menit',ex:[
+   ['Lari santai','20 menit','—','Kalau badan masih pegal, jalan kaki saja','Jantung']]}]}
+];
+function renderProgram(){
+  const cur=phase(today());
+  $('phases').innerHTML=PROG.map(p=>'<details class="ph" data-ph="'+p.ph+'"'+(p.ph===cur?' open':'')+'><summary>'+p.title+'<span class="muted">'+p.when+'</span>'+(p.ph===cur?'<span class="ph-now">sekarang</span>':'')+'</summary><div class="ph-body">'+p.sessions.map(se=>'<div class="sess"><h3>'+se.name+'</h3><div class="where">'+se.where+'</div><div class="tbl"><table><thead><tr><th>Gerakan</th><th>Set × rep</th><th>Beban awal</th><th>Catatan</th></tr></thead><tbody>'+se.ex.map(e=>'<tr><td><span class="area">'+e[4]+'</span>'+e[0]+'</td><td class="sr">'+e[1]+'</td><td class="kg">'+e[2]+'</td><td>'+e[3]+'</td></tr>').join('')+'</tbody></table></div>'+(se.note?'<p class="note">'+se.note+'</p>':'')+'</div>').join('')+'</div></details>').join('');
+}
+renderProgram();
+render();
+(async()=>{
+  let db=null;
+  try{ db=window.claude&&window.claude.use?await window.claude.use('db'):null; }catch(e){ db=null; }
+  if(!db){ goLocal(); return; }
+  S.db=db; S.mode='db'; setStatus('Tersimpan di akunmu','ok');
+  db.collection('weeks').onSnapshot(snap=>{
+    const next=Object.assign({},S.weeks);
+    snap.docs.forEach(d=>{ if(!inflight.has('weeks/'+d.id)) next[d.id]=d.data(); });
+    S.weeks=next; render();
+  },()=>setStatus('Koneksi data terputus, muat ulang halaman','err'));
+  db.doc('meta/events').onSnapshot(d=>{
+    if(inflight.has('meta/events')) return;
+    S.events=d.exists?d.data():{done:{}}; render();
+  },()=>{});
+})();
+})();
+</script>
+
+</body></html>
